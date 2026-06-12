@@ -19,6 +19,7 @@ const state = {
     questions: [],
     currentAnswerIndex: 0,
     chatHistory: [],
+    geminiApiKey: localStorage.getItem('geminiApiKey') || '', // Store API key
 };
 
 // ========================================
@@ -107,7 +108,7 @@ const translations = {
         hintBtn: 'Hint',
         hintTitle: '💡 Hint',
         aiTutorTitle: '🤖 AI Tutor',
-        aiTutorSubtitle: 'Tanya apa saja tentang Matematik!',
+        aiTutorSubtitle: 'Tanya apa saja tentang Matematik atau Topik Lain!',
         suggestedLabel: '💡 Soalan Dicadangkan:',
         guessGraphTitle: '🎮 Teka Bentuk Graf',
         level2Title: '⭐ Level 2 🔓',
@@ -120,6 +121,10 @@ const translations = {
         statsTitle: '📊 Statistik Anda',
         sendBtn: 'Hantar',
         answerPlaceholder: 'Masukkan Jawapan',
+        apiKeySetup: '⚙️ Setup API Key',
+        apiKeyLabel: 'Masukkan Gemini API Key:',
+        saveApiKeyBtn: 'Simpan API Key',
+        apiKeyHelp: 'Dapat API Key gratis dari https://ai.google.dev',
     },
     en: {
         loginSubtitle: 'Learn Graphs Interactively',
@@ -144,7 +149,7 @@ const translations = {
         hintBtn: 'Hint',
         hintTitle: '💡 Hint',
         aiTutorTitle: '🤖 AI Tutor',
-        aiTutorSubtitle: 'Ask anything about Math!',
+        aiTutorSubtitle: 'Ask anything about Math or Any Topic!',
         suggestedLabel: '💡 Suggested Questions:',
         guessGraphTitle: '🎮 Guess The Graph',
         level2Title: '⭐ Level 2 🔓',
@@ -157,6 +162,10 @@ const translations = {
         statsTitle: '📊 Your Statistics',
         sendBtn: 'Send',
         answerPlaceholder: 'Enter Answer',
+        apiKeySetup: '⚙️ Setup API Key',
+        apiKeyLabel: 'Enter Gemini API Key:',
+        saveApiKeyBtn: 'Save API Key',
+        apiKeyHelp: 'Get free API Key from https://ai.google.dev',
     },
 };
 
@@ -712,7 +721,7 @@ function submitAnswer(event) {
     } else {
         feedbackDiv.className = 'feedback-message error';
         const failMeme = getRandomFailMeme();
-        feedbackDiv.textContent = `${failMeme}\n\n✓ Jawapan: ${state.questions[state.currentQuestion].answer}`;
+        feedbackDiv.textContent = `${failMeme}\n\n✓ ${state.currentLanguage === 'ms' ? 'Jawapan' : 'Answer'}: ${state.questions[state.currentQuestion].answer}`;
     }
 }
 
@@ -818,12 +827,12 @@ function checkGraphAnswer(selected, correct, btn) {
     } else {
         msgDiv.className = 'feedback-message error';
         const failMeme = getRandomFailMeme();
-        msgDiv.textContent = `${failMeme}\n\n✓ Answer: ${correct}`;
+        msgDiv.textContent = `${failMeme}\n\n✓ ${state.currentLanguage === 'ms' ? 'Jawapan' : 'Answer'}: ${correct}`;
     }
 }
 
 // ========================================
-// AI TUTOR - ENHANCED VERSION
+// AI TUTOR - WITH GEMINI API FOR OPEN-ENDED QUESTIONS
 // ========================================
 
 const suggestedQuestions = {
@@ -831,39 +840,76 @@ const suggestedQuestions = {
         'Bagaimana cara menyelesaikan persamaan kuadratik?',
         'Apa itu sistem persamaan linear?',
         'Bagaimana cara mencari cerun sebuah garis?',
+        'Jelaskan tentang fungsi eksponen',
+        'Apa perbezaan antara graf linear dan kuadratik?',
     ],
     en: [
         'How to solve quadratic equations?',
         'What is a system of linear equations?',
         'How to find the slope of a line?',
+        'Explain exponential functions',
+        'What is the difference between linear and quadratic graphs?',
     ],
 };
 
-const aiKnowledgeBase = {
-    ms: {
-        'linear|garis': 'Graf linear adalah bentuk garis lurus yang diwakili oleh persamaan y = mx + c. Di sini:\n• m = cerun (slope) - mengukur kecuraman garis\n• c = pintasan-y (y-intercept) - di mana garis memotong paksi y\n• Dua garis selari mempunyai cerun yang sama\n• Dua garis serenjang: m₁ × m₂ = -1',
-        'cerun|gradient|slope': 'Cerun dikira dengan formula: cerun = (y₂ - y₁) / (x₂ - x₁)\nContohnya: Garis melalui (1, 2) dan (3, 6)\nCerun = (6 - 2) / (3 - 1) = 4 / 2 = 2\nCerun positif: garis naik ke atas\nCerun negatif: garis menurun ke bawah',
-        'kuadratik|parabola': 'Graf kuadratik mempunyai bentuk U atau ∩, diwakili y = ax² + bx + c. Ciri-ciri:\n• Titik puncak (vertex) adalah titik tertinggi atau terendah\n• Jika a > 0, parabola membuka ke atas\n• Jika a < 0, parabola membuka ke bawah\n• Diskriminan = b² - 4ac menentukan jenis akar',
-        'akar|root|diskriminan': 'Akar-akar persamaan kuadratik diperoleh dari:\n1. Pemfaktoran: x² - 5x + 6 = (x-2)(x-3) = 0, akar = 2 dan 3\n2. Formula kuadratik: x = (-b ± √(b²-4ac)) / 2a\n3. Lengkapkan kuasa dua\n\nDiskriminan (Δ = b² - 4ac):\n• Δ > 0: dua akar nyata berbeza\n• Δ = 0: dua akar nyata sama\n• Δ < 0: tiada akar nyata',
-        'eksponen|log|logaritma': 'Eksponen dan logaritma saling songsang:\n• 2³ = 8 bermaksud log₂(8) = 3\n• Hukum eksponen: aᵐ × aⁿ = aᵐ⁺ⁿ\n• Hukum logaritma: log(a) + log(b) = log(ab)\n• Nomor e ≈ 2.718 adalah asas logaritma asli (ln)',
-        'trigonometri|sin|cos|tan': 'Nisbah trigonometri dalam segitiga bersudut tegak:\n• sin θ = sisi bertentangan / hipotenus\n• cos θ = sisi bersebelahan / hipotenus\n• tan θ = sisi bertentangan / sisi bersebelahan\n\nSudut istimewa:\n• sin(0°)=0, sin(30°)=0.5, sin(90°)=1\n• cos(0°)=1, cos(30°)=√3/2, cos(90°)=0\n• Identiti Pythagoras: sin²θ + cos²θ = 1',
-        'default': 'Saya adalah AI Tutor untuk Matematik. Saya boleh membantu anda dengan:\n✓ Persamaan linear\n✓ Persamaan kuadratik\n✓ Eksponen dan logaritma\n✓ Trigonometri\n✓ Grafnya dan konsep lain\n\nBergabunglah dengan pembelajaran interaktif dengan SmartMath!',
-    },
-    en: {
-        'linear|line': 'A linear graph is a straight line represented by y = mx + c. Key points:\n• m = slope - measures the steepness of the line\n• c = y-intercept - where the line crosses the y-axis\n• Parallel lines have the same slope\n• Perpendicular lines: m₁ × m₂ = -1',
-        'slope|gradient': 'Slope is calculated using: slope = (y₂ - y₁) / (x₂ - x₁)\nExample: Line through (1, 2) and (3, 6)\nSlope = (6 - 2) / (3 - 1) = 4 / 2 = 2\nPositive slope: line goes up\nNegative slope: line goes down',
-        'quadratic|parabola': 'A quadratic graph has a U or ∩ shape, represented by y = ax² + bx + c. Features:\n• Vertex (turning point) is the highest or lowest point\n• If a > 0, parabola opens upward\n• If a < 0, parabola opens downward\n• Discriminant = b² - 4ac determines the type of roots',
-        'root|discriminant': 'Roots of a quadratic equation from:\n1. Factoring: x² - 5x + 6 = (x-2)(x-3) = 0, roots = 2 and 3\n2. Quadratic formula: x = (-b ± √(b²-4ac)) / 2a\n3. Completing the square\n\nDiscriminant (Δ = b² - 4ac):\n• Δ > 0: two distinct real roots\n• Δ = 0: two equal real roots\n• Δ < 0: no real roots',
-        'exponential|log|logarithm': 'Exponential and logarithm are inverse operations:\n• 2³ = 8 means log₂(8) = 3\n• Exponential law: aᵐ × aⁿ = aᵐ⁺ⁿ\n• Logarithm law: log(a) + log(b) = log(ab)\n• The number e ≈ 2.718 is the base of natural logarithm (ln)',
-        'trigonometry|sin|cos|tan': 'Trigonometric ratios in right triangles:\n• sin θ = opposite / hypotenuse\n• cos θ = adjacent / hypotenuse\n• tan θ = opposite / adjacent\n\nSpecial angles:\n• sin(0°)=0, sin(30°)=0.5, sin(90°)=1\n• cos(0°)=1, cos(30°)=√3/2, cos(90°)=0\n• Pythagorean identity: sin²θ + cos²θ = 1',
-        'default': 'I\'m an AI Math Tutor. I can help you with:\n✓ Linear equations\n✓ Quadratic equations\n✓ Exponential and logarithm\n✓ Trigonometry\n✓ Graphs and other concepts\n\nJoin interactive learning with SmartMath!',
-    },
-};
-
 function initializeAiTutor() {
-    displaySuggestedQuestions();
-    state.chatHistory = [];
-    document.getElementById('chatMessages').innerHTML = '';
+    if (!state.geminiApiKey) {
+        showApiKeySetup();
+    } else {
+        displaySuggestedQuestions();
+        state.chatHistory = [];
+        document.getElementById('chatMessages').innerHTML = '';
+    }
+}
+
+function showApiKeySetup() {
+    const t = translations[state.currentLanguage];
+    const aiTutorDiv = document.getElementById('aiTutor');
+    
+    aiTutorDiv.innerHTML = `
+        <div class="container card fade-in">
+            <div class="question-header">
+                <button class="btn-back" onclick="showPage('menu')">← ${t.backLabel}</button>
+            </div>
+            
+            <h2>${t.apiKeySetup}</h2>
+            <p class="subtitle">${t.apiKeyHelp}</p>
+            
+            <div class="api-key-setup">
+                <input 
+                    type="password" 
+                    id="geminiKeyInput" 
+                    placeholder="${t.apiKeyLabel}"
+                    class="input-field"
+                    style="margin: 15px 0;"
+                >
+                <button class="btn btn-primary" onclick="saveGeminiApiKey()" style="width: 100%; margin-bottom: 10px;">
+                    ${t.saveApiKeyBtn}
+                </button>
+                <p style="font-size: 12px; color: #666; margin-top: 10px;">
+                    🔒 ${state.currentLanguage === 'ms' ? 'API Key disimpan secara lokal di peranti anda' : 'API Key is saved locally on your device'}
+                </p>
+            </div>
+        </div>
+    `;
+}
+
+function saveGeminiApiKey() {
+    const apiKey = document.getElementById('geminiKeyInput').value.trim();
+    
+    if (!apiKey) {
+        alert(state.currentLanguage === 'ms' ? 'Sila masukkan API Key' : 'Please enter API Key');
+        return;
+    }
+    
+    state.geminiApiKey = apiKey;
+    localStorage.setItem('geminiApiKey', apiKey);
+    
+    // Show success message
+    alert(state.currentLanguage === 'ms' ? '✅ API Key disimpan!' : '✅ API Key saved!');
+    
+    // Reinitialize AI Tutor
+    initializeAiTutor();
 }
 
 function displaySuggestedQuestions() {
@@ -892,36 +938,87 @@ function sendQuestion(event) {
     addChatMessage(question, 'user');
     document.getElementById('userQuestion').value = '';
 
-    setTimeout(() => {
-        const response = generateAiResponse(question);
-        addChatMessage(response, 'ai');
-    }, 500);
+    // Show loading indicator
+    addChatMessage(state.currentLanguage === 'ms' ? '⏳ Mencari jawapan...' : '⏳ Finding answer...', 'ai-loading');
+
+    // Get AI response from Gemini
+    getGeminiResponse(question);
+}
+
+async function getGeminiResponse(question) {
+    try {
+        if (!state.geminiApiKey) {
+            addChatMessage(state.currentLanguage === 'ms' ? '❌ Sila setup API Key terlebih dahulu' : '❌ Please setup API Key first', 'ai');
+            return;
+        }
+
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${state.geminiApiKey}`;
+        
+        const language = state.currentLanguage === 'ms' ? 'Malay' : 'English';
+        const systemPrompt = state.currentLanguage === 'ms' 
+            ? 'Anda adalah pembantu tutor pelajar yang cerdas dan bersahabat. Jawab soalan dengan jelas, ringkas dan mudah difahami. Kalau soalan tentang matematik, berikan penjelasan step-by-step. Gunakan Bahasa Melayu.'
+            : 'You are a smart and friendly student tutor. Answer questions clearly, concisely and in an easy to understand way. If the question is about mathematics, provide step-by-step explanation. Use English.';
+
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                contents: [{
+                    parts: [{
+                        text: `${systemPrompt}\n\nSoalan: ${question}`
+                    }]
+                }]
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        
+        // Remove loading message
+        const chatMessages = document.getElementById('chatMessages');
+        const lastMessage = chatMessages.lastElementChild;
+        if (lastMessage && lastMessage.classList.contains('ai-loading')) {
+            lastMessage.remove();
+        }
+
+        // Extract response text
+        const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response received';
+        addChatMessage(responseText, 'ai');
+
+    } catch (error) {
+        console.error('Error:', error);
+        
+        // Remove loading message
+        const chatMessages = document.getElementById('chatMessages');
+        const lastMessage = chatMessages.lastElementChild;
+        if (lastMessage && lastMessage.classList.contains('ai-loading')) {
+            lastMessage.remove();
+        }
+
+        // Show error message
+        const errorMsg = state.currentLanguage === 'ms' 
+            ? `❌ Ralat: ${error.message}. Sila semak API Key anda.`
+            : `❌ Error: ${error.message}. Please check your API Key.`;
+        addChatMessage(errorMsg, 'ai');
+    }
 }
 
 function addChatMessage(content, sender) {
     const messagesDiv = document.getElementById('chatMessages');
     const messageEl = document.createElement('div');
     messageEl.className = `message ${sender}`;
-    messageEl.innerHTML = `<div class="message-content">${content}</div>`;
+    
+    // Format text with line breaks
+    const formattedContent = content.replace(/\n/g, '<br>');
+    messageEl.innerHTML = `<div class="message-content">${formattedContent}</div>`;
+    
     messagesDiv.appendChild(messageEl);
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
-}
-
-function generateAiResponse(question) {
-    const lang = state.currentLanguage;
-    const kb = aiKnowledgeBase[lang] || aiKnowledgeBase.en;
-    const q = question.toLowerCase();
-
-    // Check for keywords in the knowledge base
-    for (const [keywords, response] of Object.entries(kb)) {
-        const keywordList = keywords.split('|');
-        if (keywordList.some(keyword => q.includes(keyword))) {
-            return response;
-        }
-    }
-
-    // Default response
-    return kb.default || 'I\'m here to help! Ask me about mathematics topics.';
 }
 
 // ========================================
