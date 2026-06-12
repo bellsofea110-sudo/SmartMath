@@ -22,6 +22,64 @@ const state = {
 };
 
 // ========================================
+// PRAISE & MEME COLLECTIONS
+// ========================================
+
+const praises = {
+    ms: [
+        '🎉 Luar biasa! Anda adalah bintang!',
+        '⭐ Sempurna! Anda menguasainya!',
+        '🚀 Fantastis! Teruskan momentum ini!',
+        '💯 Wow! Jawapan yang tepat!',
+        '🔥 Gila gila! Anda genius!',
+        '👏 Bravo! Kerja yang luar biasa!',
+        '✨ Sangat bagus! Teruskan begini!',
+        '🎊 Tahniah! Anda berbakat!',
+        '💪 Kuat gila! Bolehlah!',
+        '🌟 Cemerlang sekali!',
+        '😎 Cool gila! Anda pro!',
+        '🏆 Champion! Anda terbaik!',
+    ],
+    en: [
+        '🎉 Amazing! You are a star!',
+        '⭐ Perfect! You nailed it!',
+        '🚀 Fantastic! Keep the momentum!',
+        '💯 Wow! Spot on!',
+        '🔥 Awesome! You\'re a genius!',
+        '👏 Bravo! Great job!',
+        '✨ Brilliant! Keep it up!',
+        '🎊 Congratulations! Very talented!',
+        '💪 Strong work! You got this!',
+        '🌟 Excellent effort!',
+        '😎 So cool! You\'re a pro!',
+        '🏆 Champion! You\'re the best!',
+    ],
+};
+
+const failMemes = {
+    ms: [
+        '😅 Oops! Bukan itu jawapannya, cuba lagi!',
+        '🤔 Hmm... hampir! Tapi bukan begitu!',
+        '📚 Jangan risau, belajar dari kesilapan!',
+        '💭 Fikir lagi sebentar... pasti boleh!',
+        '🎯 Belum tepat, tapi sudah dekat!',
+        '🧠 Otak tak on ke hari ni? 😄',
+        '⚡ Sekali lagi! Kali ini pasti betul!',
+        '🤷 Hmm, bukan main-main soalan ni!',
+    ],
+    en: [
+        '😅 Oops! That\'s not quite right, try again!',
+        '🤔 Hmm... close but not quite!',
+        '📚 Don\'t worry, learn from mistakes!',
+        '💭 Think again... you can do it!',
+        '🎯 Not quite, but you\'re getting there!',
+        '🧠 Brain not working today? 😄',
+        '⚡ Try once more! This time for sure!',
+        '🤷 Hmm, this one\'s tricky!',
+    ],
+};
+
+// ========================================
 // TRANSLATIONS
 // ========================================
 
@@ -101,6 +159,20 @@ const translations = {
         answerPlaceholder: 'Enter Answer',
     },
 };
+
+// ========================================
+// HELPER FUNCTIONS
+// ========================================
+
+function getRandomPraise() {
+    const praisingArray = praises[state.currentLanguage] || praises.en;
+    return praisingArray[Math.floor(Math.random() * praisingArray.length)];
+}
+
+function getRandomFailMeme() {
+    const failArray = failMemes[state.currentLanguage] || failMemes.en;
+    return failArray[Math.floor(Math.random() * failArray.length)];
+}
 
 // ========================================
 // LANGUAGE MANAGEMENT
@@ -630,15 +702,17 @@ function submitAnswer(event) {
         state.score += 20;
         state.questionsAnswered++;
         feedbackDiv.className = 'feedback-message success';
-        feedbackDiv.textContent = '✓ Correct! Great job!';
+        const praise = getRandomPraise();
+        feedbackDiv.textContent = praise;
 
         setTimeout(() => {
             state.currentQuestion++;
             displayQuestion();
-        }, 1000);
+        }, 1500);
     } else {
         feedbackDiv.className = 'feedback-message error';
-        feedbackDiv.textContent = `✗ Incorrect. The answer is: ${state.questions[state.currentQuestion].answer}`;
+        const failMeme = getRandomFailMeme();
+        feedbackDiv.textContent = `${failMeme}\n\n✓ Jawapan: ${state.questions[state.currentQuestion].answer}`;
     }
 }
 
@@ -732,22 +806,24 @@ function checkGraphAnswer(selected, correct, btn) {
     if (selected === correct) {
         state.score += 10;
         msgDiv.className = 'feedback-message success';
-        msgDiv.textContent = '✓ Correct!';
+        const praise = getRandomPraise();
+        msgDiv.textContent = praise;
         btn.classList.add('selected');
 
         setTimeout(() => {
             state.currentQuestion++;
             msgDiv.className = 'feedback-message';
             displayGameQuestion();
-        }, 1000);
+        }, 1500);
     } else {
         msgDiv.className = 'feedback-message error';
-        msgDiv.textContent = `✗ Wrong. It's ${correct}`;
+        const failMeme = getRandomFailMeme();
+        msgDiv.textContent = `${failMeme}\n\n✓ Answer: ${correct}`;
     }
 }
 
 // ========================================
-// AI TUTOR
+// AI TUTOR - ENHANCED VERSION
 // ========================================
 
 const suggestedQuestions = {
@@ -761,6 +837,27 @@ const suggestedQuestions = {
         'What is a system of linear equations?',
         'How to find the slope of a line?',
     ],
+};
+
+const aiKnowledgeBase = {
+    ms: {
+        'linear|garis': 'Graf linear adalah bentuk garis lurus yang diwakili oleh persamaan y = mx + c. Di sini:\n• m = cerun (slope) - mengukur kecuraman garis\n• c = pintasan-y (y-intercept) - di mana garis memotong paksi y\n• Dua garis selari mempunyai cerun yang sama\n• Dua garis serenjang: m₁ × m₂ = -1',
+        'cerun|gradient|slope': 'Cerun dikira dengan formula: cerun = (y₂ - y₁) / (x₂ - x₁)\nContohnya: Garis melalui (1, 2) dan (3, 6)\nCerun = (6 - 2) / (3 - 1) = 4 / 2 = 2\nCerun positif: garis naik ke atas\nCerun negatif: garis menurun ke bawah',
+        'kuadratik|parabola': 'Graf kuadratik mempunyai bentuk U atau ∩, diwakili y = ax² + bx + c. Ciri-ciri:\n• Titik puncak (vertex) adalah titik tertinggi atau terendah\n• Jika a > 0, parabola membuka ke atas\n• Jika a < 0, parabola membuka ke bawah\n• Diskriminan = b² - 4ac menentukan jenis akar',
+        'akar|root|diskriminan': 'Akar-akar persamaan kuadratik diperoleh dari:\n1. Pemfaktoran: x² - 5x + 6 = (x-2)(x-3) = 0, akar = 2 dan 3\n2. Formula kuadratik: x = (-b ± √(b²-4ac)) / 2a\n3. Lengkapkan kuasa dua\n\nDiskriminan (Δ = b² - 4ac):\n• Δ > 0: dua akar nyata berbeza\n• Δ = 0: dua akar nyata sama\n• Δ < 0: tiada akar nyata',
+        'eksponen|log|logaritma': 'Eksponen dan logaritma saling songsang:\n• 2³ = 8 bermaksud log₂(8) = 3\n• Hukum eksponen: aᵐ × aⁿ = aᵐ⁺ⁿ\n• Hukum logaritma: log(a) + log(b) = log(ab)\n• Nomor e ≈ 2.718 adalah asas logaritma asli (ln)',
+        'trigonometri|sin|cos|tan': 'Nisbah trigonometri dalam segitiga bersudut tegak:\n• sin θ = sisi bertentangan / hipotenus\n• cos θ = sisi bersebelahan / hipotenus\n• tan θ = sisi bertentangan / sisi bersebelahan\n\nSudut istimewa:\n• sin(0°)=0, sin(30°)=0.5, sin(90°)=1\n• cos(0°)=1, cos(30°)=√3/2, cos(90°)=0\n• Identiti Pythagoras: sin²θ + cos²θ = 1',
+        'default': 'Saya adalah AI Tutor untuk Matematik. Saya boleh membantu anda dengan:\n✓ Persamaan linear\n✓ Persamaan kuadratik\n✓ Eksponen dan logaritma\n✓ Trigonometri\n✓ Grafnya dan konsep lain\n\nBergabunglah dengan pembelajaran interaktif dengan SmartMath!',
+    },
+    en: {
+        'linear|line': 'A linear graph is a straight line represented by y = mx + c. Key points:\n• m = slope - measures the steepness of the line\n• c = y-intercept - where the line crosses the y-axis\n• Parallel lines have the same slope\n• Perpendicular lines: m₁ × m₂ = -1',
+        'slope|gradient': 'Slope is calculated using: slope = (y₂ - y₁) / (x₂ - x₁)\nExample: Line through (1, 2) and (3, 6)\nSlope = (6 - 2) / (3 - 1) = 4 / 2 = 2\nPositive slope: line goes up\nNegative slope: line goes down',
+        'quadratic|parabola': 'A quadratic graph has a U or ∩ shape, represented by y = ax² + bx + c. Features:\n• Vertex (turning point) is the highest or lowest point\n• If a > 0, parabola opens upward\n• If a < 0, parabola opens downward\n• Discriminant = b² - 4ac determines the type of roots',
+        'root|discriminant': 'Roots of a quadratic equation from:\n1. Factoring: x² - 5x + 6 = (x-2)(x-3) = 0, roots = 2 and 3\n2. Quadratic formula: x = (-b ± √(b²-4ac)) / 2a\n3. Completing the square\n\nDiscriminant (Δ = b² - 4ac):\n• Δ > 0: two distinct real roots\n• Δ = 0: two equal real roots\n• Δ < 0: no real roots',
+        'exponential|log|logarithm': 'Exponential and logarithm are inverse operations:\n• 2³ = 8 means log₂(8) = 3\n• Exponential law: aᵐ × aⁿ = aᵐ⁺ⁿ\n• Logarithm law: log(a) + log(b) = log(ab)\n• The number e ≈ 2.718 is the base of natural logarithm (ln)',
+        'trigonometry|sin|cos|tan': 'Trigonometric ratios in right triangles:\n• sin θ = opposite / hypotenuse\n• cos θ = adjacent / hypotenuse\n• tan θ = opposite / adjacent\n\nSpecial angles:\n• sin(0°)=0, sin(30°)=0.5, sin(90°)=1\n• cos(0°)=1, cos(30°)=√3/2, cos(90°)=0\n• Pythagorean identity: sin²θ + cos²θ = 1',
+        'default': 'I\'m an AI Math Tutor. I can help you with:\n✓ Linear equations\n✓ Quadratic equations\n✓ Exponential and logarithm\n✓ Trigonometry\n✓ Graphs and other concepts\n\nJoin interactive learning with SmartMath!',
+    },
 };
 
 function initializeAiTutor() {
@@ -811,31 +908,20 @@ function addChatMessage(content, sender) {
 }
 
 function generateAiResponse(question) {
-    const responses = {
-        ms: {
-            linear: 'Graf linear membentuk garis lurus. Persamaan: y = mx + c, di mana m ialah cerun dan c ialah pintasan-y.',
-            quadratic: 'Graf kuadratik membentuk bentuk U atau ∩. Persamaan: y = ax² + bx + c.',
-            slope: 'Cerun = (y2 - y1) / (x2 - x1). Ia mengukur kecuraman garis.',
-            solve: 'Untuk persamaan kuadratik: gunakan pemfaktoran, formula, atau lengkapkan kuasa dua.',
-            default: 'Itu soalan yang bagus! Boleh anda jelaskan lebih lanjut?',
-        },
-        en: {
-            linear: 'A linear graph is a straight line. Equation: y = mx + c, where m is slope and c is y-intercept.',
-            quadratic: 'A quadratic graph forms a U or ∩ shape. Equation: y = ax² + bx + c.',
-            slope: 'Slope = (y2 - y1) / (x2 - x1). It measures how steep a line is.',
-            solve: 'For quadratic equations: use factoring, formula, or complete the square.',
-            default: 'Great question! Can you explain more?',
-        },
-    };
-
     const lang = state.currentLanguage;
+    const kb = aiKnowledgeBase[lang] || aiKnowledgeBase.en;
     const q = question.toLowerCase();
 
-    if (q.includes('linear')) return responses[lang].linear;
-    if (q.includes('quadratic')) return responses[lang].quadratic;
-    if (q.includes('slope') || q.includes('cerun')) return responses[lang].slope;
-    if (q.includes('solve') || q.includes('selesai')) return responses[lang].solve;
-    return responses[lang].default;
+    // Check for keywords in the knowledge base
+    for (const [keywords, response] of Object.entries(kb)) {
+        const keywordList = keywords.split('|');
+        if (keywordList.some(keyword => q.includes(keyword))) {
+            return response;
+        }
+    }
+
+    // Default response
+    return kb.default || 'I\'m here to help! Ask me about mathematics topics.';
 }
 
 // ========================================
@@ -894,11 +980,11 @@ function showSuccessPage() {
 
     const performanceText = document.getElementById('performanceText');
     if (accuracy >= 80) {
-        performanceText.textContent = state.currentLanguage === 'ms' ? 'Cemerlang!' : 'Excellent!';
+        performanceText.textContent = state.currentLanguage === 'ms' ? '🌟 Cemerlang!' : '🌟 Excellent!';
     } else if (accuracy >= 60) {
-        performanceText.textContent = state.currentLanguage === 'ms' ? 'Bagus! Teruskan.' : 'Good! Keep going.';
+        performanceText.textContent = state.currentLanguage === 'ms' ? '👍 Bagus! Teruskan.' : '👍 Good! Keep going.';
     } else {
-        performanceText.textContent = state.currentLanguage === 'ms' ? 'Coba lagi!' : 'Try again!';
+        performanceText.textContent = state.currentLanguage === 'ms' ? '💪 Coba lagi!' : '💪 Try again!';
     }
 
     if (state.score >= 80) {
