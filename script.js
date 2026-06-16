@@ -19,7 +19,6 @@ const state = {
     questions: [],
     currentAnswerIndex: 0,
     chatHistory: [],
-    geminiApiKey: localStorage.getItem('geminiApiKey') || '', // Store API key
 };
 
 // ========================================
@@ -121,10 +120,6 @@ const translations = {
         statsTitle: '📊 Statistik Anda',
         sendBtn: 'Hantar',
         answerPlaceholder: 'Masukkan Jawapan',
-        apiKeySetup: '⚙️ Setup API Key',
-        apiKeyLabel: 'Masukkan Gemini API Key:',
-        saveApiKeyBtn: 'Simpan API Key',
-        apiKeyHelp: 'Dapat API Key gratis dari https://ai.google.dev',
     },
     en: {
         loginSubtitle: 'Learn Graphs Interactively',
@@ -149,7 +144,7 @@ const translations = {
         hintBtn: 'Hint',
         hintTitle: '💡 Hint',
         aiTutorTitle: '🤖 AI Tutor',
-        aiTutorSubtitle: 'Ask Mathematics questions only!',
+        aiTutorSubtitle: 'Ask Mathematics questions!',
         suggestedLabel: '💡 Suggested Questions:',
         guessGraphTitle: '🎮 Guess The Graph',
         level2Title: '⭐ Level 2 🔓',
@@ -162,11 +157,51 @@ const translations = {
         statsTitle: '📊 Your Statistics',
         sendBtn: 'Send',
         answerPlaceholder: 'Enter Answer',
-        apiKeySetup: '⚙️ Setup API Key',
-        apiKeyLabel: 'Enter Gemini API Key:',
-        saveApiKeyBtn: 'Save API Key',
-        apiKeyHelp: 'Get free API Key from https://ai.google.dev',
     },
+};
+
+// ========================================
+// MATH KNOWLEDGE BASE (NO API KEY NEEDED)
+// ========================================
+
+const mathKnowledgeBase = {
+    ms: {
+        'persamaan linear': 'Persamaan linear adalah persamaan dengan pemboleh ubah berpangkat 1. Bentuk umum: y = mx + c, di mana m adalah cerun dan c adalah pintasan-y. Contoh: y = 2x + 3',
+        'cerun': 'Cerun (gradient) adalah kecerunan garis. Formula: m = (y₂ - y₁) / (x₂ - x₁). Cerun positif = garis naik, cerun negatif = garis turun.',
+        'pintasan y': 'Pintasan-y adalah titik di mana graf memotong paksi-y. Ia adalah nilai y apabila x = 0. Dalam y = mx + c, pintasan-y adalah c.',
+        'persamaan kuadratik': 'Persamaan kuadratik adalah persamaan dengan pemboleh ubah berpangkat 2. Bentuk umum: y = ax² + bx + c. Contoh: y = x² + 2x + 1. Grafnya berbentuk parabola.',
+        'diskriminan': 'Diskriminan = b² - 4ac. Jika Δ > 0: 2 akar nyata. Jika Δ = 0: 1 akar nyata. Jika Δ < 0: tiada akar nyata.',
+        'fungsi eksponen': 'Fungsi eksponen: y = aˣ. Ciri: garis tidak melalui paksi-x, selalu positif. Contoh: y = 2ˣ. Semakin besar x, semakin cepat pertumbuhan.',
+        'trigonometri': 'Trigonometri melibatkan sin, cos, tan. sin(0°)=0, sin(90°)=1. cos(0°)=1, cos(90°)=0. tan(45°)=1.',
+        'logaritma': 'Logaritma adalah songsangan eksponen. Jika aˣ = b, maka x = logₐ(b). Contoh: log₁₀(100) = 2 kerana 10² = 100.',
+    },
+    en: {
+        'linear equation': 'A linear equation has variables with power 1. General form: y = mx + c, where m is slope and c is y-intercept. Example: y = 2x + 3',
+        'slope': 'Slope (gradient) is the steepness of a line. Formula: m = (y₂ - y₁) / (x₂ - x₁). Positive slope = line rises, negative slope = line falls.',
+        'y intercept': 'The y-intercept is where the graph crosses the y-axis. It is the value of y when x = 0. In y = mx + c, the y-intercept is c.',
+        'quadratic equation': 'A quadratic equation has variables with power 2. General form: y = ax² + bx + c. Example: y = x² + 2x + 1. Graph is a parabola.',
+        'discriminant': 'Discriminant = b² - 4ac. If Δ > 0: 2 real roots. If Δ = 0: 1 real root. If Δ < 0: no real roots.',
+        'exponential function': 'Exponential function: y = aˣ. Characteristics: never crosses x-axis, always positive. Example: y = 2ˣ. Larger x means faster growth.',
+        'trigonometry': 'Trigonometry involves sin, cos, tan. sin(0°)=0, sin(90°)=1. cos(0°)=1, cos(90°)=0. tan(45°)=1.',
+        'logarithm': 'Logarithm is the inverse of exponent. If aˣ = b, then x = logₐ(b). Example: log₁₀(100) = 2 because 10² = 100.',
+    }
+};
+
+const suggestedQuestions = {
+    ms: [
+        'Bagaimana cara menyelesaikan persamaan kuadratik?',
+        'Apa itu cerun sebuah garis?',
+        'Jelaskan tentang fungsi eksponen',
+        'Apa perbezaan antara graf linear dan kuadratik?',
+        'Bagaimana mencari diskriminan?',
+    ],
+    en: [
+        'How to solve quadratic equations?',
+        'What is the slope of a line?',
+        'Explain exponential functions',
+        'What is the difference between linear and quadratic graphs?',
+        'How to find the discriminant?',
+    ],
 };
 
 // ========================================
@@ -181,6 +216,23 @@ function getRandomPraise() {
 function getRandomFailMeme() {
     const failArray = failMemes[state.currentLanguage] || failMemes.en;
     return failArray[Math.floor(Math.random() * failArray.length)];
+}
+
+function searchMathKnowledge(question) {
+    const kb = mathKnowledgeBase[state.currentLanguage] || mathKnowledgeBase.en;
+    const questionLower = question.toLowerCase();
+    
+    // Search for keywords
+    for (const [keyword, answer] of Object.entries(kb)) {
+        if (questionLower.includes(keyword)) {
+            return answer;
+        }
+    }
+    
+    // If no match found, return a helpful message
+    return state.currentLanguage === 'ms' 
+        ? '📚 Saya tidak mempunyai jawapan khusus untuk soalan ini. Tetapi saya boleh membantu dengan: persamaan linear, cerun, pintasan-y, persamaan kuadratik, diskriminan, fungsi eksponen, trigonometri, logaritma. Coba tanya tentang topik-topik ini!'
+        : '📚 I don\'t have a specific answer for this question. But I can help with: linear equations, slope, y-intercepts, quadratic equations, discriminant, exponential functions, trigonometry, logarithms. Try asking about these topics!';
 }
 
 // ========================================
@@ -832,84 +884,13 @@ function checkGraphAnswer(selected, correct, btn) {
 }
 
 // ========================================
-// AI TUTOR - MATHEMATICS ONLY
+// AI TUTOR - NO API KEY NEEDED
 // ========================================
 
-const suggestedQuestions = {
-    ms: [
-        'Bagaimana cara menyelesaikan persamaan kuadratik?',
-        'Apa itu sistem persamaan linear?',
-        'Bagaimana cara mencari cerun sebuah garis?',
-        'Jelaskan tentang fungsi eksponen',
-        'Apa perbezaan antara graf linear dan kuadratik?',
-    ],
-    en: [
-        'How to solve quadratic equations?',
-        'What is a system of linear equations?',
-        'How to find the slope of a line?',
-        'Explain exponential functions',
-        'What is the difference between linear and quadratic graphs?',
-    ],
-};
-
 function initializeAiTutor() {
-    if (!state.geminiApiKey) {
-        showApiKeySetup();
-    } else {
-        displaySuggestedQuestions();
-        state.chatHistory = [];
-        document.getElementById('chatMessages').innerHTML = '';
-    }
-}
-
-function showApiKeySetup() {
-    const t = translations[state.currentLanguage];
-    const aiTutorDiv = document.getElementById('aiTutor');
-    
-    aiTutorDiv.innerHTML = `
-        <div class="container card fade-in">
-            <div class="question-header">
-                <button class="btn-back" onclick="showPage('menu')">← ${t.backLabel}</button>
-            </div>
-            
-            <h2>${t.apiKeySetup}</h2>
-            <p class="subtitle">${t.apiKeyHelp}</p>
-            
-            <div class="api-key-setup">
-                <input 
-                    type="password" 
-                    id="geminiKeyInput" 
-                    placeholder="${t.apiKeyLabel}"
-                    class="input-field"
-                    style="margin: 15px 0;"
-                >
-                <button class="btn btn-primary" onclick="saveGeminiApiKey()" style="width: 100%; margin-bottom: 10px;">
-                    ${t.saveApiKeyBtn}
-                </button>
-                <p style="font-size: 12px; color: #666; margin-top: 10px;">
-                    🔒 ${state.currentLanguage === 'ms' ? 'API Key disimpan secara lokal di peranti anda' : 'API Key is saved locally on your device'}
-                </p>
-            </div>
-        </div>
-    `;
-}
-
-function saveGeminiApiKey() {
-    const apiKey = document.getElementById('geminiKeyInput').value.trim();
-    
-    if (!apiKey) {
-        alert(state.currentLanguage === 'ms' ? 'Sila masukkan API Key' : 'Please enter API Key');
-        return;
-    }
-    
-    state.geminiApiKey = apiKey;
-    localStorage.setItem('geminiApiKey', apiKey);
-    
-    // Show success message
-    alert(state.currentLanguage === 'ms' ? '✅ API Key disimpan!' : '✅ API Key saved!');
-    
-    // Reinitialize AI Tutor
-    initializeAiTutor();
+    displaySuggestedQuestions();
+    state.chatHistory = [];
+    document.getElementById('chatMessages').innerHTML = '';
 }
 
 function displaySuggestedQuestions() {
@@ -938,54 +919,12 @@ function sendQuestion(event) {
     addChatMessage(question, 'user');
     document.getElementById('userQuestion').value = '';
 
-    // Show loading indicator
+    // Show loading indicator briefly
     addChatMessage(state.currentLanguage === 'ms' ? '⏳ Mencari jawapan...' : '⏳ Finding answer...', 'ai-loading');
 
-    // Get AI response from Gemini
-    getGeminiResponse(question);
-}
-
-async function getGeminiResponse(question) {
-    try {
-        if (!state.geminiApiKey) {
-            addChatMessage(state.currentLanguage === 'ms' ? '❌ Sila setup API Key terlebih dahulu' : '❌ Please setup API Key first', 'ai');
-            return;
-        }
-
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${state.geminiApiKey}`;
-        
-        const language = state.currentLanguage === 'ms' ? 'Malay' : 'English';
-        const systemPrompt = state.currentLanguage === 'ms' 
-            ? `Anda adalah AI Tutor Matematik yang berdedikasi. PENTING: Anda HANYA boleh menjawab soalan yang berkaitan dengan MATEMATIK. 
-
-Jika pertanyaan TIDAK tentang matematik (seperti sains, sejarah, geografi, atau topik lain), tolak dengan baik dan katakan: "Maaf, saya hanya tutor matematik. Saya hanya boleh menjawab soalan tentang matematik. Tanya saya sesuatu tentang algebra, geometri, trigonometri, atau topik matematik lain!"
-
-Untuk soalan matematik, berikan penjelasan yang jelas, ringkas, mudah difahami, dan step-by-step jika diperlukan.`
-            : `You are a dedicated Mathematics AI Tutor. IMPORTANT: You ONLY answer questions related to MATHEMATICS.
-
-If the question is NOT about mathematics (such as science, history, geography, or other topics), politely decline and say: "Sorry, I'm only a math tutor. I can only answer math questions. Ask me something about algebra, geometry, trigonometry, or other math topics!"
-
-For math questions, provide clear, concise, easy-to-understand explanations with step-by-step solutions when needed.`;
-
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                contents: [{
-                    parts: [{
-                        text: `${systemPrompt}\n\nQuestion: ${question}`
-                    }]
-                }]
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error(`API error: ${response.status}`);
-        }
-
-        const data = await response.json();
+    // Get response from knowledge base (instant, no API)
+    setTimeout(() => {
+        const response = searchMathKnowledge(question);
         
         // Remove loading message
         const chatMessages = document.getElementById('chatMessages');
@@ -994,26 +933,8 @@ For math questions, provide clear, concise, easy-to-understand explanations with
             lastMessage.remove();
         }
 
-        // Extract response text
-        const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response received';
-        addChatMessage(responseText, 'ai');
-
-    } catch (error) {
-        console.error('Error:', error);
-        
-        // Remove loading message
-        const chatMessages = document.getElementById('chatMessages');
-        const lastMessage = chatMessages.lastElementChild;
-        if (lastMessage && lastMessage.classList.contains('ai-loading')) {
-            lastMessage.remove();
-        }
-
-        // Show error message
-        const errorMsg = state.currentLanguage === 'ms' 
-            ? `❌ Ralat: ${error.message}. Sila semak API Key anda.`
-            : `❌ Error: ${error.message}. Please check your API Key.`;
-        addChatMessage(errorMsg, 'ai');
-    }
+        addChatMessage(response, 'ai');
+    }, 500);
 }
 
 function addChatMessage(content, sender) {
