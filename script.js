@@ -108,7 +108,7 @@ const translations = {
         hintBtn: 'Hint',
         hintTitle: '💡 Hint',
         aiTutorTitle: '🤖 AI Tutor',
-        aiTutorSubtitle: 'Tanya apa saja tentang Matematik atau Topik Lain!',
+        aiTutorSubtitle: 'Tanya soalan Matematik sahaja!',
         suggestedLabel: '💡 Soalan Dicadangkan:',
         guessGraphTitle: '🎮 Teka Bentuk Graf',
         level2Title: '⭐ Level 2 🔓',
@@ -149,7 +149,7 @@ const translations = {
         hintBtn: 'Hint',
         hintTitle: '💡 Hint',
         aiTutorTitle: '🤖 AI Tutor',
-        aiTutorSubtitle: 'Ask anything about Math or Any Topic!',
+        aiTutorSubtitle: 'Ask Mathematics questions only!',
         suggestedLabel: '💡 Suggested Questions:',
         guessGraphTitle: '🎮 Guess The Graph',
         level2Title: '⭐ Level 2 🔓',
@@ -832,7 +832,7 @@ function checkGraphAnswer(selected, correct, btn) {
 }
 
 // ========================================
-// AI TUTOR - WITH GEMINI API FOR OPEN-ENDED QUESTIONS
+// AI TUTOR - MATHEMATICS ONLY
 // ========================================
 
 const suggestedQuestions = {
@@ -956,8 +956,16 @@ async function getGeminiResponse(question) {
         
         const language = state.currentLanguage === 'ms' ? 'Malay' : 'English';
         const systemPrompt = state.currentLanguage === 'ms' 
-            ? 'Anda adalah pembantu tutor pelajar yang cerdas dan bersahabat. Jawab soalan dengan jelas, ringkas dan mudah difahami. Kalau soalan tentang matematik, berikan penjelasan step-by-step. Gunakan Bahasa Melayu.'
-            : 'You are a smart and friendly student tutor. Answer questions clearly, concisely and in an easy to understand way. If the question is about mathematics, provide step-by-step explanation. Use English.';
+            ? `Anda adalah AI Tutor Matematik yang berdedikasi. PENTING: Anda HANYA boleh menjawab soalan yang berkaitan dengan MATEMATIK. 
+
+Jika pertanyaan TIDAK tentang matematik (seperti sains, sejarah, geografi, atau topik lain), tolak dengan baik dan katakan: "Maaf, saya hanya tutor matematik. Saya hanya boleh menjawab soalan tentang matematik. Tanya saya sesuatu tentang algebra, geometri, trigonometri, atau topik matematik lain!"
+
+Untuk soalan matematik, berikan penjelasan yang jelas, ringkas, mudah difahami, dan step-by-step jika diperlukan.`
+            : `You are a dedicated Mathematics AI Tutor. IMPORTANT: You ONLY answer questions related to MATHEMATICS.
+
+If the question is NOT about mathematics (such as science, history, geography, or other topics), politely decline and say: "Sorry, I'm only a math tutor. I can only answer math questions. Ask me something about algebra, geometry, trigonometry, or other math topics!"
+
+For math questions, provide clear, concise, easy-to-understand explanations with step-by-step solutions when needed.`;
 
         const response = await fetch(apiUrl, {
             method: 'POST',
@@ -967,7 +975,7 @@ async function getGeminiResponse(question) {
             body: JSON.stringify({
                 contents: [{
                     parts: [{
-                        text: `${systemPrompt}\n\nSoalan: ${question}`
+                        text: `${systemPrompt}\n\nQuestion: ${question}`
                     }]
                 }]
             })
